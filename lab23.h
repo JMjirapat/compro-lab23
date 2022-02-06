@@ -40,13 +40,27 @@ class Unit{
 		void equip(Equipment *);  
 };
 
+Equipment::Equipment(int h,int a,int d){
+	hpmax = h;
+	atk = a;
+	def = d;
+}
+
+vector<int> Equipment::getStat(){
+	vector<int> stat;
+	stat.push_back(hpmax);
+	stat.push_back(atk);
+	stat.push_back(def);
+	return stat;
+}
+
 Unit::Unit(string t,string n){ 
 	type = t;
 	name = n;
 	if(type == "Hero"){
-		hpmax = rand()%20+120;
-		atk = rand()%5+14;
-		def = rand()%3+9;
+		hpmax = /*rand()%20+*/120;
+		atk = /*rand()%5+*/14;
+		def = /*rand()%3+*/9;
 	}else if(t == "Monster"){
 		hpmax = rand()%20+250;
 		atk = rand()%5+25;
@@ -54,6 +68,7 @@ Unit::Unit(string t,string n){
 	}
 	hp = hpmax;	
 	guard_on = false;
+	dodge_on = false;
 	equipment = NULL;
 }
 
@@ -74,6 +89,7 @@ void Unit::showStatus(){
 
 void Unit::newTurn(){
 	guard_on = false; 
+	dodge_on = false; 
 }
 
 int Unit::beAttacked(int oppatk){
@@ -84,12 +100,21 @@ int Unit::beAttacked(int oppatk){
 	}	
 	hp -= dmg;
 	if(hp <= 0){hp = 0;}
-	
+	if(dodge_on == true){
+		if(rand()%100 > 49)
+			return dmg*2;
+		else
+			return 0;
+	}
 	return dmg;	
 }
 
 int Unit::attack(Unit &opp){
 	return opp.beAttacked(atk);
+}
+
+int Unit::ultimateAttack(Unit &opp){
+	return opp.beAttacked(atk*2);
 }
 
 int Unit::heal(){
@@ -101,11 +126,31 @@ int Unit::heal(){
 
 void Unit::guard(){
 	guard_on = true;
-}	
+}
+
+void Unit::dodge(){
+	dodge_on = true;
+}
 
 bool Unit::isDead(){
 	if(hp <= 0) return true;
 	else return false;
+}
+
+void Unit::equip(Equipment *eqm){
+	if(equipment != NULL){
+		vector<int> stat_old = equipment->getStat();
+		hpmax -= stat_old[0];
+		atk -= stat_old[1];
+		def -= stat_old[2];
+	}
+	vector<int> stat = eqm->getStat();
+	hpmax += stat[0];
+	atk += stat[1];
+	def += stat[2];
+	equipment = eqm;
+	if(hp > hpmax)
+		hp = hpmax;
 }
 
 void drawScene(char p_action,int p,char m_action,int m){
